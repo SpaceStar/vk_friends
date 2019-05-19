@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Друзья ВКонтакте</string>
+    <string name="authorize_button">Авторизоваться</string>
+    <string name="friends">Друзья</string>
+    <string name="allow_access">Необходимо разрешить доступ к списку друзей</string>
+</resources>

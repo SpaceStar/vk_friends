@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements MainFragment.LogI
 
             @Override
             public void onLoginFailed(int i) {
-                Toast.makeText(MainActivity.this, R.string.allow_access, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, R.string.allow_access, Toast.LENGTH_LONG).show();
             }
         };
         if (data == null || !VK.onActivityResult(requestCode, resultCode, data, callback)) {
