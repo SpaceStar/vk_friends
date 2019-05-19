@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">VK Friends</string>
+    <integer name="com_vk_sdk_AppId">6988457</integer>
+    <string name="authorize_button">Authorize</string>
+    <string name="friends">Friends</string>
+    <string name="allow_access">You need to allow access</string>
+</resources>
