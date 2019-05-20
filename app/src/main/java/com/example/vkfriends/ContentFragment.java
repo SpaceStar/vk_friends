@@ -42,11 +42,17 @@ public class ContentFragment extends Fragment {
 
     private Toast errorToast;
 
+    private Toast getErrorToast() {
+        if (errorToast == null) {
+            errorToast = Toast.makeText(getContext(), R.string.error, Toast.LENGTH_SHORT);
+        }
+        return errorToast;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        errorToast = Toast.makeText(getContext(), R.string.error, Toast.LENGTH_SHORT);
         friendsAdapter = new FriendsAdapter();
     }
 
@@ -122,7 +128,7 @@ public class ContentFragment extends Fragment {
 
             @Override
             public void fail(@NotNull VKApiExecutionException e) {
-                errorToast.show();
+                getErrorToast().show();
             }
         });
     }
@@ -140,7 +146,7 @@ public class ContentFragment extends Fragment {
 
             @Override
             public void fail(@NotNull VKApiExecutionException e) {
-                errorToast.show();
+                getErrorToast().show();
             }
         });
     }
