@@ -1,5 +1,8 @@
 package com.example.vkfriends;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.view.LayoutInflater;
@@ -116,6 +119,12 @@ public class ContentFragment extends Fragment {
     }
 
     private void getFriends() {
+        if (!checkInternetConnection()) {
+            Toast.makeText(getActivity(), R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
+            friendsDownloaded = true;
+            updateDownloadStatus();
+            return;
+        }
         friendsDownloaded = false;
         updateDownloadStatus();
         VK.execute(new VKFriendsRequest(), new VKApiCallback<List<VKUser>>() {
@@ -134,6 +143,12 @@ public class ContentFragment extends Fragment {
     }
 
     private void getUser() {
+        if (!checkInternetConnection()) {
+            Toast.makeText(getActivity(), R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
+            userDownloaded = true;
+            updateDownloadStatus();
+            return;
+        }
         userDownloaded = false;
         updateDownloadStatus();
         VK.execute(new VKUserRequest(), new VKApiCallback<VKUser>() {
@@ -149,5 +164,21 @@ public class ContentFragment extends Fragment {
                 getErrorToast().show();
             }
         });
+    }
+
+    public boolean checkInternetConnection() {
+        try {
+            ConnectivityManager conMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            NetworkInfo networkInfo = conMgr.getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.isAvailable() && networkInfo.isConnected())
+                return true;
+            else
+                return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }

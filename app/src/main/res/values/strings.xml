@@ -5,4 +5,5 @@
     <string name="friends">Friends</string>
     <string name="allow_access">You need to allow access</string>
     <string name="error" translatable="false">error</string>
+    <string name="no_internet_connection">No internet connection</string>
 </resources>

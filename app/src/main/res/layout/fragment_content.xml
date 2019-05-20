@@ -16,7 +16,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="@{downloading ? View.GONE : View.VISIBLE}">
+        android:visibility="@{(downloading || (user == null)) ? View.GONE : View.VISIBLE}">
 
         <include layout="@layout/list_item"
             android:layout_width="match_parent"
