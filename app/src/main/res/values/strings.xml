@@ -4,4 +4,5 @@
     <string name="authorize_button">Authorize</string>
     <string name="friends">Friends</string>
     <string name="allow_access">You need to allow access</string>
+    <string name="error" translatable="false">error</string>
 </resources>

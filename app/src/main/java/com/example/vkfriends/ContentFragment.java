@@ -46,7 +46,7 @@ public class ContentFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        errorToast = Toast.makeText(getContext(), "error", Toast.LENGTH_SHORT);
+        errorToast = Toast.makeText(getContext(), R.string.error, Toast.LENGTH_SHORT);
         friendsAdapter = new FriendsAdapter();
     }
 
