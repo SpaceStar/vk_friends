@@ -97,7 +97,7 @@ public class ContentFragment extends Fragment {
         List<VKUser> friends = friendsAdapter.getUsers();
         if (user != null)
             outState.putParcelable(KEY_USER, user);
-        if (friends != null)
+        if (friendsAdapter.isInitialized())
             outState.putParcelableArrayList(KEY_FRIENDS, new ArrayList<Parcelable>(friends));
     }
 

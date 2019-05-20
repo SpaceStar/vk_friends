@@ -10,14 +10,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.vkfriends.databinding.ListItemBinding;
 import com.example.vkfriends.vk.models.VKUser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.UserViewHolder> {
-    List<VKUser> users;
+    List<VKUser> users = new ArrayList<>();
+    private boolean initialized = false;
 
     public void setUsers(List<VKUser> users) {
         this.users = users;
+        initialized = true;
         notifyDataSetChanged();
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 
     public List<VKUser> getUsers() {
