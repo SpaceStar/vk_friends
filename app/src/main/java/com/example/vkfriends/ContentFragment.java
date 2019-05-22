@@ -44,9 +44,6 @@ public class ContentFragment extends Fragment {
     private FriendsAdapter friendsAdapter;
     private ObservableBoolean downloading = new ObservableBoolean();
 
-    private boolean userDownloaded;
-    private boolean friendsDownloaded;
-
     private Toast errorToast;
     private ConnectivityManager.NetworkCallback networkCallback;
 
@@ -90,8 +87,7 @@ public class ContentFragment extends Fragment {
         if (!checkInternetConnection()) {
             connected = false;
             Toast.makeText(getActivity(), R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
-            userDownloaded = true;
-            friendsDownloaded = true;
+            downloading.set(false);
         }
 
         if (savedInstanceState != null) {
@@ -102,18 +98,16 @@ public class ContentFragment extends Fragment {
                     getUser();
             } else {
                 contentBinding.setUser(user);
-                userDownloaded = true;
             }
             if (friends == null) {
                 if (connected)
                     getFriends();
             } else {
                 friendsAdapter.setUsers(friends);
-                friendsDownloaded = true;
-                updateDownloadStatus();
             }
             if ((user != null) && (friends != null)) {
                 networkCallback = null;
+                updateDownloadStatus();
             }
         } else if (connected) {
             getUser();
@@ -164,42 +158,49 @@ public class ContentFragment extends Fragment {
     }
 
     private void onInternetAvailable() {
-        VKUser user = contentBinding.getUser();
-        if (userDownloaded && (user == null))
+        if (!isUserDownloaded())
             getUser();
-        if (friendsDownloaded && (!friendsAdapter.isInitialized()))
+        if (!isFriendsDownloaded())
             getFriends();
     }
 
     private void onInternetLost() {
-        userDownloaded = true;
-        friendsDownloaded = true;
-        updateDownloadStatus();
+        downloading.set(false);
         Toast.makeText(getActivity(), R.string.internet_connection_lost, Toast.LENGTH_SHORT).show();
     }
 
     private void updateDownloadStatus() {
-        if (userDownloaded && friendsDownloaded) {
+        if (isUserDownloaded() && isFriendsDownloaded()) {
             downloading.set(false);
+            if (networkCallback != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                ConnectivityManager conMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+                conMgr.unregisterNetworkCallback(networkCallback);
+                networkCallback = null;
+            }
         } else {
             downloading.set(true);
         }
+    }
+
+    private boolean isUserDownloaded() {
         VKUser user = contentBinding.getUser();
-        if ((user != null) && friendsAdapter.isInitialized() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ConnectivityManager conMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-            conMgr.unregisterNetworkCallback(networkCallback);
-            networkCallback = null;
-        }
+        if (user != null)
+            return true;
+        return false;
+    }
+
+    private boolean isFriendsDownloaded() {
+        if (friendsAdapter.isInitialized())
+            return true;
+        return false;
     }
 
     private void getFriends() {
-        friendsDownloaded = false;
         updateDownloadStatus();
         VK.execute(new VKFriendsRequest(), new VKApiCallback<List<VKUser>>() {
             @Override
             public void success(List<VKUser> vkUsers) {
                 friendsAdapter.setUsers(vkUsers);
-                friendsDownloaded = true;
                 updateDownloadStatus();
             }
 
@@ -211,13 +212,11 @@ public class ContentFragment extends Fragment {
     }
 
     private void getUser() {
-        userDownloaded = false;
         updateDownloadStatus();
         VK.execute(new VKUserRequest(), new VKApiCallback<VKUser>() {
             @Override
             public void success(VKUser vkUser) {
                 contentBinding.setUser(vkUser);
-                userDownloaded = true;
                 updateDownloadStatus();
             }
 
