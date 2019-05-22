@@ -2,7 +2,11 @@ package com.example.vkfriends;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
+import android.net.NetworkRequest;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.view.LayoutInflater;
@@ -44,6 +48,7 @@ public class ContentFragment extends Fragment {
     private boolean friendsDownloaded;
 
     private Toast errorToast;
+    private ConnectivityManager.NetworkCallback networkCallback;
 
     private Toast getErrorToast() {
         if (errorToast == null) {
@@ -57,6 +62,19 @@ public class ContentFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         friendsAdapter = new FriendsAdapter();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            networkCallback = new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    onInternetAvailable();
+                }
+
+                @Override
+                public void onLost(Network network) {
+                    onInternetLost();
+                }
+            };
+        }
     }
 
     @Nullable
@@ -68,24 +86,36 @@ public class ContentFragment extends Fragment {
         ToolbarBinding.bind(getActivity().findViewById(R.id.toolbar)).setDownloading(downloading);
         contentBinding.setDownloading(downloading);
 
+        boolean connected = true;
+        if (!checkInternetConnection()) {
+            connected = false;
+            Toast.makeText(getActivity(), R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
+            userDownloaded = true;
+            friendsDownloaded = true;
+        }
+
         if (savedInstanceState != null) {
             VKUser user = savedInstanceState.getParcelable(KEY_USER);
             List<VKUser> friends = savedInstanceState.getParcelableArrayList(KEY_FRIENDS);
             if (user == null) {
-                getUser();
+                if (connected)
+                    getUser();
             } else {
                 contentBinding.setUser(user);
                 userDownloaded = true;
-                updateDownloadStatus();
             }
             if (friends == null) {
-                getFriends();
+                if (connected)
+                    getFriends();
             } else {
                 friendsAdapter.setUsers(friends);
                 friendsDownloaded = true;
                 updateDownloadStatus();
             }
-        } else {
+            if ((user != null) && (friends != null)) {
+                networkCallback = null;
+            }
+        } else if (connected) {
             getUser();
             getFriends();
         }
@@ -110,21 +140,59 @@ public class ContentFragment extends Fragment {
             outState.putParcelableArrayList(KEY_FRIENDS, new ArrayList<Parcelable>(friends));
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if (networkCallback != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ConnectivityManager conMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkRequest request = new NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .build();
+            conMgr.registerNetworkCallback(request, networkCallback);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        if (networkCallback != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ConnectivityManager conMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            conMgr.unregisterNetworkCallback(networkCallback);
+        }
+    }
+
+    private void onInternetAvailable() {
+        VKUser user = contentBinding.getUser();
+        if (userDownloaded && (user == null))
+            getUser();
+        if (friendsDownloaded && (!friendsAdapter.isInitialized()))
+            getFriends();
+    }
+
+    private void onInternetLost() {
+        userDownloaded = true;
+        friendsDownloaded = true;
+        updateDownloadStatus();
+        Toast.makeText(getActivity(), R.string.internet_connection_lost, Toast.LENGTH_SHORT).show();
+    }
+
     private void updateDownloadStatus() {
         if (userDownloaded && friendsDownloaded) {
             downloading.set(false);
         } else {
             downloading.set(true);
         }
+        VKUser user = contentBinding.getUser();
+        if ((user != null) && friendsAdapter.isInitialized() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ConnectivityManager conMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            conMgr.unregisterNetworkCallback(networkCallback);
+            networkCallback = null;
+        }
     }
 
     private void getFriends() {
-        if (!checkInternetConnection()) {
-            Toast.makeText(getActivity(), R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
-            friendsDownloaded = true;
-            updateDownloadStatus();
-            return;
-        }
         friendsDownloaded = false;
         updateDownloadStatus();
         VK.execute(new VKFriendsRequest(), new VKApiCallback<List<VKUser>>() {
@@ -143,12 +211,6 @@ public class ContentFragment extends Fragment {
     }
 
     private void getUser() {
-        if (!checkInternetConnection()) {
-            Toast.makeText(getActivity(), R.string.no_internet_connection, Toast.LENGTH_SHORT).show();
-            userDownloaded = true;
-            updateDownloadStatus();
-            return;
-        }
         userDownloaded = false;
         updateDownloadStatus();
         VK.execute(new VKUserRequest(), new VKApiCallback<VKUser>() {
@@ -166,7 +228,7 @@ public class ContentFragment extends Fragment {
         });
     }
 
-    public boolean checkInternetConnection() {
+    private boolean checkInternetConnection() {
         try {
             ConnectivityManager conMgr = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
 
