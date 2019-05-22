@@ -10,42 +10,36 @@
             type="com.example.vkfriends.vk.models.VKUser" />
     </data>
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/itemUserPhoto"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            app:loadImage="@{user.photo}"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@tools:sample/avatars" />
 
-            <ImageView
-                android:id="@+id/itemUserPhoto"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginLeft="8dp"
-                app:loadImage="@{user.photo}"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:srcCompat="@tools:sample/avatars" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:includeFontPadding="false"
+            android:text="@{user.firstName + ' ' + user.lastName}"
+            tools:text="Name Surname"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            app:layout_constraintStart_toEndOf="@+id/itemUserPhoto"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginLeft="16dp"
-                android:includeFontPadding="false"
-                android:text="@{user.firstName + ' ' + user.lastName}"
-                tools:text="Name Surname"
-                android:textSize="16sp"
-                android:textColor="#000000"
-                app:layout_constraintStart_toEndOf="@+id/itemUserPhoto"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"/>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>
